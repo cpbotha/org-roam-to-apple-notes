@@ -1,6 +1,7 @@
 -- example showing how to use contents of file as body of new note
 -- this works, but the embedded base64 images almost never do
 -- (I got it working once, with exactly the same settings. AppleScript for Notes is super flaky.)
+-- even when I export an existing note with working images using applescript, and then re-import, images are borked
 
 set BODY_FN to (the posix path of "/tmp/sigmoid_loss_for_language_image_pre_training.html")
 set NBODY to read BODY_FN
