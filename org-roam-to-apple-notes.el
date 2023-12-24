@@ -63,7 +63,6 @@
         (goto-char point)
         (add-hook 'org-pandoc-after-processing-html5-hook 'pandoc-hook)
         (message "----- default directory %s" default-directory)
-        (setq oran-html-fn nil)
         ;; a s v b e
         ;; a=ignored, subtreep, visible, body-only, ext-plist
         ;; URGH org-pandoc-export-as- can only push to a *pandoc <N>* buffer
