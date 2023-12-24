@@ -139,7 +139,7 @@
           (message "exporting %s" (org-roam-node-title node))
           ;; catch error from export, report, but continue to next node
           (condition-case err
-              (oran--export-node-to-apple-notes node temp-dir)
+              (oran--export-node-to-apple-notes node temp-dir 't)
             (error (message "ERROR exporting %s: %s" (org-roam-node-title node) err))))))
     (message "DONE.")))
 
@@ -153,7 +153,7 @@
       (message "exporting %s" (org-roam-node-title node))
       ;; catch error from export, report, but continue to next node
       (condition-case err
-          (oran--export-node-to-apple-notes node temp-dir)
+          (oran--export-node-to-apple-notes node temp-dir nil)
         (error (message "ERROR exporting %s: %s" (org-roam-node-title node) err))))
     (message "DONE.")
     temp-dir))
