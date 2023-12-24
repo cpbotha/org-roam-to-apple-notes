@@ -93,9 +93,10 @@
                 (goto-char (point-min))
                 (while (re-search-forward "^\\[WARNING\\] .*" nil t)
                   (replace-match ""))
-                ;; replace any end of paragraph elems </p> with </p><br>
-                (while (re-search-forward "</p>" nil t)
-                  (replace-match "</p><br>"))
+                ;; replace any start of paragraph elems <p> with <br><p> because Notes
+                ;; only adds vertical space for <br>
+                (while (re-search-forward "<p>" nil t)
+                  (replace-match "<br><p>"))
 
                 ;; write contents of current buffer to file in temp-dir
                 (write-file oran-html-fn)
