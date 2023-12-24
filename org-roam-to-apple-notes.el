@@ -41,6 +41,8 @@
 
          ;; we embed images as base64 in the forlorn hope that Apple Notes might show these
          ;; https://emacs.stackexchange.com/questions/27060/embed-image-as-base64-on-html-export-from-orgmode
+         ;; --self-contained is a deprecated synonym for --embed-resources --standalone but
+         ;; --embed-resources not yet supported by ox-pandoc
          (org-pandoc-options-for-html5 '((standalone . t) (self-contained . t)))
          )
 
