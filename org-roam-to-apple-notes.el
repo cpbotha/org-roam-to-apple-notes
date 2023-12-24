@@ -163,6 +163,12 @@
   (interactive)
   (oran--export-node-to-apple-notes (org-roam-node-at-point) "/tmp" nil))
 
+;;;###autoload
+(defun oran-export-this-node-to-apple-notes ()
+  (interactive)
+  (oran--export-node-to-apple-notes (org-roam-node-at-point) "/tmp" 't))
+
+
 (provide 'org-roam-to-apple-notes)
 
 ;;(org-roam-node-file-mtime (org-roam-node-at-point))
