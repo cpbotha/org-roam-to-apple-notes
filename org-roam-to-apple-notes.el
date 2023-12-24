@@ -63,69 +63,58 @@
         (goto-char point)
         (add-hook 'org-pandoc-after-processing-html5-hook 'pandoc-hook)
         (message "----- default directory %s" default-directory)
-        ;; a s v b e
-        ;; a=ignored, subtreep, visible, body-only, ext-plist
-        ;; URGH org-pandoc-export-as- can only push to a *pandoc <N>* buffer
-        ;; however, by setting default-directory, to-html5 creates file where we want
-        ;; with plist-get, we get the effective output filename
-        ;;(setq oran-html-fn (expand-file-name (plist-get (org-pandoc-export-to-html5 nil (org-at-heading-p) nil nil) 'output-file)))
 
-        ;; a s v b e
-        ;; a=ignored, subtreep, visible, body-only, ext-plist
-        (org-pandoc-export-as-html5 nil (org-at-heading-p) nil nil)
+        (let ((html (org-export-as 'html (org-at-heading-p) nil 't))
+              (oran-html-fn (expand-file-name (concat (oran--slugify title) ".html") temp-dir)))
+          (with-temp-buffer 
+            (insert html)
+            
+            (goto-char (point-min))
 
-        ;; wait for pandoc to actually finish
-        ;; can take quite long for the new buffer to appear, hence the 30s timeout. sorry.
-        (setq wait-time 0)
-        (while (and (not oran-html-done) (< wait-time 30))
-          (message "waiting for pandoc: %.1fs" wait-time)
-          ;; update display, and be interruptible by input, instead of sleep-for
-          (sit-for 0.1)
-          ;; if pandoc errors out, pandoc-hook is never called, and pandoc also
-          ;; sever raises an error or anything (only message), so we have to
-          ;; have our own little timeout as well
-          (setq wait-time (+ wait-time 0.1)))
+            ;; make sure we have title as the first line
+            (insert "<h1>" title "</h1>\n")
+            (insert "<p>Source modified: "(format-time-string "%FT%T%z" file-mtime) "</p>\n\n")
 
-        (if oran-pandoc-buffer
-            (with-current-buffer oran-pandoc-buffer
-              (let ((oran-html-fn (expand-file-name (concat (oran--slugify title) ".html") temp-dir)))
+            ;; so our empty line -> <br> will catch empty lines we added here
+            (goto-char (point-min))
+            
+            ;; (while (re-search-forward "^\\[WARNING\\] .*" nil t)
+            ;;   (replace-match ""))
+            ;; replace any start of paragraph elems <p> with <br><p> because Notes
+            ;; only adds vertical space for <br>
+            ;; (while (re-search-forward "<p>" nil t)
+            ;;   (replace-match "<br><p>"))
 
-                ;; remove any "[WARNING] some long message\n" lines from top of buffer
-                (goto-char (point-min))
-                (while (re-search-forward "^\\[WARNING\\] .*" nil t)
-                  (replace-match ""))
-                ;; replace any start of paragraph elems <p> with <br><p> because Notes
-                ;; only adds vertical space for <br>
-                (while (re-search-forward "<p>" nil t)
-                  (replace-match "<br><p>"))
+            ;; replace any blank (empty) lines with <br>.  the built-in html
+            ;; exported adds blank lines at the right spots, but apple notes
+            ;; ignores them unless we add <br>
+            (while (re-search-forward "^$" nil t)
+              (replace-match "<br>"))
 
-                ;; write contents of current buffer to file in temp-dir
-                (write-file oran-html-fn)
+            ;; write contents of current buffer to file in temp-dir
+            (write-file oran-html-fn)
 
-                ;; kill current buffer
-                (kill-buffer (current-buffer))
-                
-                (when do-apple-notes
-                  ;; get size of oran-html-fn on disk
-                  (setq oran-html-size (nth 7 (file-attributes oran-html-fn)))
-                  (message "oran-html-size: %s" oran-html-size)
-                  (message "creating the note! %s" oran-html-fn)
+            (when do-apple-notes
+              ;; get size of oran-html-fn on disk
+              (setq oran-html-size (nth 7 (file-attributes oran-html-fn)))
+              (message "oran-html-size: %s" oran-html-size)
+              (message "creating the note! %s" oran-html-fn)
 
-                  (org-mac-link-do-applescript
-                   (concat
-                    "set BODY_FN to (the POSIX path of \"" oran-html-fn "\")\n"
-                    "set NBODY to read BODY_FN\n"
-                    "tell application \"Notes\"\n"
-                    ;;"activate\n"
-                    "tell folder \"org-roam\"\n"
-                    "if not (note named \"" title "\" exists) then\n"
-                    "make new note with properties {body:NBODY}\n"
-                    "end if\n"
-                    "end tell\n"
-                    "end tell\n")))
-                ;; if HTML export was successful, we return the full filename
-                oran-html-fn))
-          nil)))))
+              (org-mac-link-do-applescript
+               (concat
+                "set BODY_FN to (the POSIX path of \"" oran-html-fn "\")\n"
+                "set NBODY to read BODY_FN\n"
+                "tell application \"Notes\"\n"
+                ;;"activate\n"
+                "tell folder \"org-roam\"\n"
+                "if not (note named \"" title "\" exists) then\n"
+                "make new note with properties {body:NBODY}\n"
+                "end if\n"
+                "end tell\n"
+                "end tell\n")))
+
+            ;; if HTML export was successful, we return the full filename
+            oran-html-fn))))))
 
 ;;;###autoload
 (defun oran-export-org-roam-nodes-to-apple-notes ()
