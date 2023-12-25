@@ -4,7 +4,7 @@
 
 ;; Author: Charl P. Botha <cpbotha@vxlabs.com>
 ;; Version: 1.0
-;; Package-Requires: ((org-roam "2.2.2") (htmlize "1.57") (org-mac-link "1.9"))
+;; Package-Requires: ((org-roam "2.2.2") (htmlize "1.57"))
 
 ;; Keywords: org, org-roam, apple notes, applescript
 ;; URL: https://github.com/cpbotha/org-roam-to-apple-notes
@@ -14,11 +14,25 @@
 ;; without this, code blocks will not be syntax highlighted!
 (require 'htmlize)
 (require 'org-roam)
-;; for org-mac-link-do-applescript, built-in do-applescript fails in mysterious ways
-(require 'org-mac-link)
+
+
+;; copied from org-mac-link -- this works better for this than the built-in do-applescript
+(defun oran--org-mac-link-do-applescript (script)
+  (let (start cmd return)
+    (while (string-match "\n" script)
+      (setq script (replace-match "\r" t t script)))
+    (while (string-match "'" script start)
+      (setq start (+ 2 (match-beginning 0))
+            script (replace-match "\\'" t t script)))
+    (setq cmd (concat "osascript -e '" script "'"))
+    (setq return (shell-command-to-string cmd))
+    (concat "\"" (org-trim return) "\"")))
+
+
+
 
 (defun oran--note-with-title-exists (title)
-  (string= "\"true\""(org-mac-link-do-applescript
+  (string= "\"true\""(oran--org-mac-link-do-applescript
                       (concat
                        "tell application \"Notes\"\n"
                        "tell folder \"org-roam\"\n" 
@@ -115,7 +129,7 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
               (message "creating the note! %s" oran-html-fn)
 
               ;; note the use of «class utf8» to read the file as UTF-8 else e.g. € is mangled
-              (org-mac-link-do-applescript
+              (oran--org-mac-link-do-applescript
                (concat
                 "set BODY_FN to (the POSIX path of \"" oran-html-fn "\")\n"
                 "set NBODY to read BODY_FN as «class utf8»\n"
