@@ -10,8 +10,10 @@
 ;; URL: https://github.com/cpbotha/org-roam-to-apple-notes
 
 
+
+;; without this, code blocks will not be syntax highlighted!
+(require 'htmlize)
 (require 'org-roam)
-(require 'ox-pandoc)
 ;; for org-mac-link-do-applescript, built-in do-applescript fails in mysterious ways
 (require 'org-mac-link)
 
@@ -27,9 +29,31 @@
 (defun oran--slugify (title)
   (replace-regexp-in-string " " "-" (downcase (replace-regexp-in-string "[^A-Za-z0-9 ]" "" title))))
 
+;; advice :around when we want to export HTML with absolute paths to local images
+(defun oran--abs-img-src-advice (orig-fun source attributes info)
+  ;; source is a relative pathname; convert to absolute
+  (let ((source-absolute (expand-file-name source)))
+    (funcall orig-fun source-absolute attributes info)))
 
-(defun oran--export-node-to-apple-notes (node temp-dir do-apple-notes)
-  "Export the given node as markdown and save it in a file."
+;; advice :around org-html--format-image to export local images as embedded base64
+;; inspired by 
+;; https://www.reddit.com/r/orgmode/comments/7dyywu/creating_a_selfcontained_html/
+(defun oran--base64-img-src-advice (orig-fun source attributes info)
+  ;; source is a relative pathname; convert to absolute
+  (let ((source-b64 (format "data:image/%s;base64,%s"
+                            (or (file-name-extension source) "")
+                            (base64-encode-string
+                             (with-temp-buffer
+                               (insert-file-contents-literally source)
+                               (buffer-string))))))
+    (funcall orig-fun source-b64 attributes info)))
+
+
+(defun oran--export-node-to-apple-notes (node temp-dir &optional do-apple-notes abs-img-paths-or-base64)
+  "Export the given node as markdown and save it in a file.
+
+If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local images. The default (nil) is to export with embedded base64 images.
+"
   (let* ((file (org-roam-node-file node))
          (id (org-roam-node-id node))
          (point (org-roam-node-point node))
@@ -65,8 +89,13 @@
         (add-hook 'org-pandoc-after-processing-html5-hook 'pandoc-hook)
         (message "----- default directory %s" default-directory)
 
+        (advice-add 'org-html--format-image :around (if abs-img-paths-or-base64  #'oran--abs-img-src-advice #'oran--base64-img-src-advice))
+
         (let ((html (org-export-as 'html (org-at-heading-p) nil 't))
               (oran-html-fn (expand-file-name (concat (oran--slugify title) ".html") temp-dir)))
+
+          (advice-remove 'org-html--format-image (if abs-img-paths-or-base64  #'oran--abs-img-src-advice #'oran--base64-img-src-advice))
+
           (with-temp-buffer 
             (insert html)
             
