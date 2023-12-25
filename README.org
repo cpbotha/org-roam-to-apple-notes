@@ -25,6 +25,12 @@ I also created a note purely in Notes, embedded an image, then exported the note
 
 You can use [[./applescript/get-note-contents.applescript][get-note-contents.applescrip]] and ... to reproduce on your system.
 
+** AppleScript silently truncates note titles to 70 characters
+
+If a title is longer than 70 characters, it is displayed in full, but any AppleScript ~note named ...~ queries have to be done with the truncated version, with the ellipsis (~…~) appended.
+
+Also, if you query such a note using AppleScript, it will only give you the truncated version.
+
 ** Edit AppleScript with VSCode and the idleberg.applescript extension 
 
 - much nicer environment than the built-in script editor

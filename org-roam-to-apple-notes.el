@@ -29,6 +29,12 @@
     (concat "\"" (org-trim return) "\"")))
 
 
+(defun oran--maybe-truncate-70 (text)
+  ;; if text is longer than 70 characters, truncate to 70 and append the ellipsis …
+  (if (> (length text) 70)
+      (concat (substring text 0 70) "…")
+    text))
+
 
 
 (defun oran--note-with-title-exists (title)
@@ -36,7 +42,7 @@
                       (concat
                        "tell application \"Notes\"\n"
                        "tell folder \"org-roam\"\n" 
-                       "return (note named \"" title "\" exists)\n"
+                       "return (note named \"" (oran--maybe-truncate-70 title) "\" exists)\n"
                        "end tell\n"
                        "end tell\n"))))
 
@@ -136,7 +142,7 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
                 "tell application \"Notes\"\n"
                 ;;"activate\n"
                 "tell folder \"org-roam\"\n"
-                "if not (note named \"" title "\" exists) then\n"
+                "if not (note named \"" (oran--maybe-truncate-70 title) "\" exists) then\n"
                 "make new note with properties {body:NBODY}\n"
                 "else\n"
                 "set existingNote to note named \"" title "\"\n"
