@@ -1,4 +1,4 @@
-;;; org-roam-to-apple-notes.el -- attempt to export org-roam nnodes to Apple Notes
+;;; org-roam-to-apple-notes.el -- attempt to export org-roam nodes to Apple Notes
 
 ;; Copyright (C) 2023 Charl P. Botha
 
@@ -62,13 +62,7 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
          ;; read file into buffer, but re-use buffer if it already exists 
          (buffer (find-file-noselect file))
          ;; silence "Need absolute ‘org-attach-id-dir’ to attach in buffers without filename" error
-         (org-attach-directory "/tmp")
-
-         ;; we embed images as base64 in the forlorn hope that Apple Notes might show these
-         ;; https://emacs.stackexchange.com/questions/27060/embed-image-as-base64-on-html-export-from-orgmode
-         ;; --self-contained is a deprecated synonym for --embed-resources --standalone but
-         ;; --embed-resources not yet supported by ox-pandoc
-         (org-pandoc-options-for-html5 '((standalone . t) (self-contained . t)))
+         (org-attach-directory temp-dir)
          )
 
     (setq oran-html-done nil)
@@ -151,16 +145,22 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
             oran-html-fn))))))
 
 ;;;###autoload
-(defun oran-export-org-roam-nodes-to-apple-notes ()
+(defun oran-export-org-roam-nodes-to-apple-notes (&optional update-existing)
+  "Export all of the org-roam nodes into the org-roam folder in Apple Notes.
+
+To save time, this will only export nodes that do not yet exist
+in Apple Notes (by title) unless UPDATE-EXISTING is non-nil, in
+which case it will also update the contents of the nodes that
+already exist."
   (interactive)
   (let ((temp-dir (make-temp-file "org-roam-" t))
         (node-list (org-roam-node-list)))
     (message "======> exporting %d nodes" (length node-list))
     (dolist (node node-list)
-      (if (oran--note-with-title-exists (org-roam-node-title node))
-          (message "note already exists: %s" (org-roam-node-title node))
+      (if (and (oran--note-with-title-exists (org-roam-node-title node)) (not update-existing))
+          (message "note already exists, skipping: %s" (org-roam-node-title node))
         (progn
-          (message "exporting %s" (org-roam-node-title node))
+          (message "exporting /updating %s" (org-roam-node-title node))
           ;; catch error from export, report, but continue to next node
           (condition-case err
               (oran--export-node-to-apple-notes node temp-dir 't)
@@ -169,6 +169,7 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
 
 ;;;###autoload
 (defun oran-export-org-roam-nodes-to-temp-dir ()
+  "Export all org-roam nodes to a temporary directory and return the temp-dir path."
   (interactive)
   (let ((temp-dir (make-temp-file "org-roam-" t))
         (node-list (org-roam-node-list)))
@@ -184,13 +185,15 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
 
 ;;;###autoload
 (defun oran-export-this-node-to-tmp ()
+  "Export the currently active org-roam node to the temp directory as HTML."
   (interactive)
-  (oran--export-node-to-apple-notes (org-roam-node-at-point) "/tmp" nil))
+  (oran--export-node-to-apple-notes (org-roam-node-at-point) temporary-file-directory nil))
 
 ;;;###autoload
 (defun oran-export-this-node-to-apple-notes ()
+  "Export the currently active org-roam node to the org-roam folder in Apple Notes."
   (interactive)
-  (oran--export-node-to-apple-notes (org-roam-node-at-point) "/tmp" 't))
+  (oran--export-node-to-apple-notes (org-roam-node-at-point) temporary-file-directory 't))
 
 
 (provide 'org-roam-to-apple-notes)
