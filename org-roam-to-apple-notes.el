@@ -6,7 +6,7 @@
 ;; Version: 1.0
 ;; Package-Requires: ((org-roam "2.2.2") (htmlize "1.57") (org-mac-link "1.9"))
 
-;; Keywords: org, similarity
+;; Keywords: org, org-roam, apple notes, applescript
 ;; URL: https://github.com/cpbotha/org-roam-to-apple-notes
 
 
