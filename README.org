@@ -2,3 +2,24 @@
 
 Learnings from my struggles to get Emacs, Apple Script and Apple Notes to all just get along.
 
+* Edit AppleScript with VSCode and the idleberg.applescript extension 
+
+- much nicer environment than the built-in script editor
+- github copilot
+- run straight from vscode
+
+
+* No way of importing HTML into Notes with images
+
+All of the following failed on macOS Sonoma 14.2, resulting in grey blocks in the imported notes. In all cases, the HTML is rendered well by the browser.
+
+- Via Notes "Import to Notes" menu function:
+  - HTML with absolute image src URLs to images outside of HTML dir
+  - HTML with base64 embedded images
+- Via AppleScript ~make new note ...~:
+  - HTML with absolute image src URLs to images outside of HTML dir
+  - HTML with base64 embedded images 
+
+I also created a note purely in Notes, embedded an image, then exported the note body using AppleScript, confirmed that the exported body contained the base64 image, then created a new note with AppleScript using that exact same body. This too resulted in the dreaded grey, unusable block.
+
+You can use [[./applescript/get-note-contents.applescript][get-note-contents.applescrip]] and ... to reproduce on your system.
