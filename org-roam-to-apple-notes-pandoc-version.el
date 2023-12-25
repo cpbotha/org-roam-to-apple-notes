@@ -8,6 +8,11 @@
 ;; Keywords: org, similarity
 ;; URL: https://github.com/cpbotha/org-roam-to-apple-notes
 
+;; This file is DEPRECATED. I'm leaving it here in case it helps anyone else
+;; choosing the ox-pandoc way. I initially spent quite an amount of time due to
+;; pandoc's embed-resources feature, but in the end the built-in org-html
+;; exported, with some advice to do the base64 embedding, did a much better job
+;; over-all.
 
 (require 'org-roam)
 (require 'ox-pandoc)
