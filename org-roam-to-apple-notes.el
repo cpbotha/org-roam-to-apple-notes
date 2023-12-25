@@ -130,10 +130,11 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
               (message "oran-html-size: %s" oran-html-size)
               (message "creating the note! %s" oran-html-fn)
 
+              ;; note the use of «class utf8» to read the file as UTF-8 else e.g. € is mangled
               (org-mac-link-do-applescript
                (concat
                 "set BODY_FN to (the POSIX path of \"" oran-html-fn "\")\n"
-                "set NBODY to read BODY_FN\n"
+                "set NBODY to read BODY_FN as «class utf8»\n"
                 "tell application \"Notes\"\n"
                 ;;"activate\n"
                 "tell folder \"org-roam\"\n"
