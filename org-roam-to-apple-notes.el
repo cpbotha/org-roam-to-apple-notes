@@ -59,24 +59,14 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
          (point (org-roam-node-point node))
          (title (org-roam-node-title node))
          (file-mtime (org-roam-node-file-mtime node))
-         ;; read file into buffer, but re-use buffer if it already exists 
-         (buffer (find-file-noselect file))
          ;; silence "Need absolute ‘org-attach-id-dir’ to attach in buffers without filename" error
          (org-attach-directory temp-dir)
          )
 
-    (setq oran-html-done nil)
-    (setq oran-pandoc-buffer nil)
-    ;; this hook will be called when the pandoc process actually returns
-    ;; in theory, the HTML output should be complete
-    (defun pandoc-hook ()
-      ;; this is the best place to get the pandoc buffer
-      (setq oran-pandoc-buffer (current-buffer))
-      (setq oran-html-done t)
-      )
-
-    
-    (with-current-buffer buffer
+    (with-temp-buffer
+      ;; we used to use (buffer (find-file-noselect file)) but then the user is left with
+      ;; ALL of their org-roam node containing files open
+      (insert-file-contents file)
       (save-excursion
         ;; move to the correct point for the export to start
         (goto-char point)
