@@ -139,6 +139,9 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
                 "tell folder \"org-roam\"\n"
                 "if not (note named \"" title "\" exists) then\n"
                 "make new note with properties {body:NBODY}\n"
+                "else\n"
+                "set existingNote to note named \"" title "\"\n"
+                "set body of existingNote to NBODY\n"
                 "end if\n"
                 "end tell\n"
                 "end tell\n")))
