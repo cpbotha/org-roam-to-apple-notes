@@ -2,14 +2,15 @@
 
 Learnings from my struggles to get Emacs, Apple Script and Apple Notes to all just get along.
 
-* Edit AppleScript with VSCode and the idleberg.applescript extension 
+* What can this do?
 
-- much nicer environment than the built-in script editor
-- github copilot
-- run straight from vscode
+This package contains functions that can import a single org-roam node, or your whole database, into a folder called =org-roam= in your Apple Notes.
 
+In spite of many hours of experimentation on my end, the truly crappy Apple Notes support in AppleScript does not allow any images to be imported. You'll get all of your text, and even nicely syntax-highlighted source code, but no images.
 
-* No way of importing HTML into Notes with images
+* Learnings
+
+** No way of importing HTML into Notes with images
 
 All of the following failed on macOS Sonoma 14.2, resulting in grey blocks in the imported notes. In all cases, the HTML is rendered well by the browser.
 
@@ -23,3 +24,11 @@ All of the following failed on macOS Sonoma 14.2, resulting in grey blocks in th
 I also created a note purely in Notes, embedded an image, then exported the note body using AppleScript, confirmed that the exported body contained the base64 image, then created a new note with AppleScript using that exact same body. This too resulted in the dreaded grey, unusable block.
 
 You can use [[./applescript/get-note-contents.applescript][get-note-contents.applescrip]] and ... to reproduce on your system.
+
+** Edit AppleScript with VSCode and the idleberg.applescript extension 
+
+- much nicer environment than the built-in script editor
+- github copilot
+- run straight from vscode
+
+
