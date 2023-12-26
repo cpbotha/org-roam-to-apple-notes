@@ -13,6 +13,8 @@
 
 ;; without this, code blocks will not be syntax highlighted!
 (require 'htmlize)
+;; I use mdroam, so some of my org-roam nodes are actually markdown files
+(require 'markdown-mode)
 (require 'org-roam)
 
 
@@ -74,6 +76,11 @@
     (funcall orig-fun source-b64 attributes info)))
 
 
+;; use markdown function to export current-buffer to HTML returned as string
+(defun oran--markdown-to-html ()
+  (with-current-buffer (get-buffer (markdown))
+    (buffer-string)))
+
 (defun oran--export-node-to-apple-notes (node temp-dir &optional do-apple-notes abs-img-paths-or-base64)
   "Export the given node as markdown and save it in a file.
 
@@ -100,7 +107,10 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
 
         (advice-add 'org-html--format-image :around (if abs-img-paths-or-base64  #'oran--abs-img-src-advice #'oran--base64-img-src-advice))
 
-        (let ((html (org-export-as 'html (org-at-heading-p) nil 't))
+        ;; I use mdroam, so need to export MD files to HTML as well
+        (let ((html (if (string= "md" (file-name-extension file))
+                        (oran--markdown-to-html)
+                      (org-export-as 'html (org-at-heading-p) nil 't)))
               (oran-html-fn (expand-file-name (concat (oran--slugify title) ".html") temp-dir)))
 
           (advice-remove 'org-html--format-image (if abs-img-paths-or-base64  #'oran--abs-img-src-advice #'oran--base64-img-src-advice))
@@ -113,6 +123,12 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
             ;; make sure we have title as the first line
             (insert "<h1>" title "</h1>\n")
             (insert "<p>Source modified: "(format-time-string "%FT%T%z" file-mtime) "</p>\n\n")
+
+            (when (string= "md" (file-name-extension file))
+              (goto-char (point-min))
+              (while (re-search-forward "\\(<h[1-9]\\)" nil t)
+                ;; replace with <br>group1
+                (replace-match "<br>\\1")))
 
             ;; so our empty line -> <br> will catch empty lines we added here
             (goto-char (point-min))
@@ -133,31 +149,34 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
             ;; write contents of current buffer to file in temp-dir
             (write-file oran-html-fn)
 
-            (when do-apple-notes
-              ;; get size of oran-html-fn on disk
-              (setq oran-html-size (nth 7 (file-attributes oran-html-fn)))
-              (message "oran-html-size: %s" oran-html-size)
-              (message "creating the note! %s" oran-html-fn)
+            (if do-apple-notes
+                (progn
+                  ;; get size of oran-html-fn on disk
+                  (setq oran-html-size (nth 7 (file-attributes oran-html-fn)))
+                  (message "oran-html-size: %s" oran-html-size)
+                  (message "creating the note! %s" oran-html-fn)
 
-              ;; note the use of «class utf8» to read the file as UTF-8 else e.g. € is mangled
-              (oran--org-mac-link-do-applescript
-               (concat
-                "set BODY_FN to (the POSIX path of \"" oran-html-fn "\")\n"
-                "set NBODY to read BODY_FN as «class utf8»\n"
-                "tell application \"Notes\"\n"
-                ;;"activate\n"
-                "tell folder \"org-roam\"\n"
-                "if not (note named \"" (oran--maybe-truncate-70 title) "\" exists) then\n"
-                "make new note with properties {body:NBODY}\n"
-                "else\n"
-                "set existingNote to note named \"" title "\"\n"
-                "set body of existingNote to NBODY\n"
-                "end if\n"
-                "end tell\n"
-                "end tell\n")))
+                  ;; note the use of «class utf8» to read the file as UTF-8 else e.g. € is mangled
+                  (let ((as-output (oran--org-mac-link-do-applescript
+                                    (concat
+                                     "set BODY_FN to (the POSIX path of \"" oran-html-fn "\")\n"
+                                     "set NBODY to read BODY_FN as «class utf8»\n"
+                                     "tell application \"Notes\"\n"
+                                     ;;"activate\n"
+                                     "tell folder \"org-roam\"\n"
+                                     "if not (note named \"" (oran--maybe-truncate-70 title) "\" exists) then\n"
+                                     "make new note with properties {body:NBODY}\n"
+                                     "else\n"
+                                     "set existingNote to note named \"" title "\"\n"
+                                     "set body of existingNote to NBODY\n"
+                                     "end if\n"
+                                     "end tell\n"
+                                     "end tell\n"))))
 
-            ;; if HTML export was successful, we return the full filename
-            oran-html-fn))))))
+                    (message "applescript return: %s" as-output)
+                    '(oran-html-fn as-output)))
+
+              '(oran-html-fn, nil))))))))
 
 ;;;###autoload
 (defun oran-export-org-roam-nodes-to-apple-notes (&optional update-existing)
