@@ -6,7 +6,9 @@ Learnings from my struggles to get Emacs, Apple Script and Apple Notes to all ju
 
 This package contains functions that can import a single org-roam node, or your whole database, into a folder called =org-roam= in your Apple Notes.
 
-In spite of many hours of experimentation on my end, the truly crappy Apple Notes support in AppleScript does not allow any images to be imported. You'll get all of your text, and even nicely syntax-highlighted source code, but no images.
+It's pretty useful that you can bulk export the lot with ~M-x oran-export-org-roam-nodes-to-apple-notes~, and then later do them ad hoc as you work on them with ~M-x oran-export-this-node-to-apple-notes~. Obviously, you can choose to live the one-by-one life from the start.
+
+In spite of many hours of experimentation on my end, the truly crappy Apple Notes support in AppleScript does not allow any images to be imported. You'll get all of your text, and even nicely syntax-highlighted source code, but no images. This package will continue embedding all images as base64 regardless, in the probably ill-advised hope that Apple will one day improve their AppleScript support for Notes.
 
 * Learnings
 
@@ -30,6 +32,12 @@ You can use [[./applescript/get-note-contents.applescript][get-note-contents.app
 If a title is longer than 70 characters, it is displayed in full, but any AppleScript ~note named ...~ queries have to be done with the truncated version, with the ellipsis (~…~) appended.
 
 Also, if you query such a note using AppleScript, it will only give you the truncated version.
+
+** iCloud syncing of notes is unreliable with 1000+ imported notes
+
+After importing my 1700+ notes database, iCloud managed to sync only the first 50 or so during the first day or two with spotty vacation wifi access.
+
+This learning is still developing...
 
 ** Edit AppleScript with VSCode and the idleberg.applescript extension 
 
