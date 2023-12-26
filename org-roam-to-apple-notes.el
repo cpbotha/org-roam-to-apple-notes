@@ -17,6 +17,7 @@
 
 
 ;; copied from org-mac-link -- this works better for this than the built-in do-applescript
+;; crucial little $' fix added
 (defun oran--org-mac-link-do-applescript (script)
   (let (start cmd return)
     (while (string-match "\n" script)
@@ -24,7 +25,11 @@
     (while (string-match "'" script start)
       (setq start (+ 2 (match-beginning 0))
             script (replace-match "\\'" t t script)))
-    (setq cmd (concat "osascript -e '" script "'"))
+    ;; cpbotha changed from '...' to $'...' to allow for \' escaping, else note titles
+    ;; with apostrophes in them would fail
+    ;; see https://stackoverflow.com/a/16605140/532513
+    (setq cmd (concat "osascript -e $'" script "'"))
+    (message "cmd: %s" cmd)
     (setq return (shell-command-to-string cmd))
     (concat "\"" (org-trim return) "\"")))
 
