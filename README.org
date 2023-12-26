@@ -37,7 +37,7 @@ Also, if you query such a note using AppleScript, it will only give you the trun
 
 After importing my 1700+ notes database, iCloud managed to sync only the first 50 or so during the first day or two with spotty vacation wifi access.
 
-I tried deleting the folder on the MacBook and iPhone and starting over, but iCloud was being very difficult about syncing even a single manually created note from MacBook to iPhone.
+I tried deleting the folder on the MacBook and iPhone and starting over. After this, iCloud was being very slow about syncing even a single manually created note from MacBook to iPhone, but after 15 minutes or so it seemed to start working. From here on I used the ~max-days~ argument to import only a smaller subsets of the full database.
 
 This learning is still developing...
 
