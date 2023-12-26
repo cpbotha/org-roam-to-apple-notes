@@ -187,7 +187,11 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
 To save time, this will only export nodes that do not yet exist
 in Apple Notes (by title) unless UPDATE-EXISTING is non-nil, in
 which case it will also update the contents of the nodes that
-already exist."
+already exist.
+
+If MAX-DAYS is non-nil, only nodes that have been modified more
+recently than that many days ago will be considered.
+"
   (interactive)
   (let ((temp-dir (make-temp-file "org-roam-" t))
         (node-list (org-roam-node-list)))
