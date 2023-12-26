@@ -31,7 +31,7 @@
     ;; with apostrophes in them would fail
     ;; see https://stackoverflow.com/a/16605140/532513
     (setq cmd (concat "osascript -e $'" script "'"))
-    (message "cmd: %s" cmd)
+    ;;(message "cmd: %s" cmd)
     (setq return (shell-command-to-string cmd))
     (concat "\"" (org-trim return) "\"")))
 
@@ -181,7 +181,7 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
               '(oran-html-fn, nil))))))))
 
 ;;;###autoload
-(defun oran-export-org-roam-nodes-to-apple-notes (&optional update-existing)
+(defun oran-export-org-roam-nodes-to-apple-notes (&optional update-existing max-days)
   "Export all of the org-roam nodes into the org-roam folder in Apple Notes.
 
 To save time, this will only export nodes that do not yet exist
@@ -191,16 +191,21 @@ already exist."
   (interactive)
   (let ((temp-dir (make-temp-file "org-roam-" t))
         (node-list (org-roam-node-list)))
+
     (message "======> exporting %d nodes" (length node-list))
     (dolist (node node-list)
-      (if (and (oran--note-with-title-exists (org-roam-node-title node)) (not update-existing))
-          (message "note already exists, skipping: %s" (org-roam-node-title node))
-        (progn
-          (message "exporting /updating %s" (org-roam-node-title node))
-          ;; catch error from export, report, but continue to next node
-          (condition-case err
-              (oran--export-node-to-apple-notes node temp-dir 't)
-            (error (message "ERROR exporting %s: %s" (org-roam-node-title node) err))))))
+      ;; if oldness check is active (max-days non-nil) do that first
+      (if (and max-days (> (/ (float-time (time-since (org-roam-node-file-mtime node))) 86400) max-days))
+          (message "skipping %s, too old" (org-roam-node-title node))
+        (if (and (oran--note-with-title-exists (org-roam-node-title node)) (not update-existing))
+            (message "note already exists, skipping: %s" (org-roam-node-title node))
+          (progn
+            (message "exporting / updating %s" (org-roam-node-title node))
+            ;; catch error from export, report, but continue to next node
+            (condition-case err
+                (oran--export-node-to-apple-notes node temp-dir 't)
+              (error (message "ERROR exporting %s: %s" (org-roam-node-title node) err)))))))
+
     (message "DONE.")))
 
 ;;;###autoload
