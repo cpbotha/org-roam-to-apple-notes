@@ -124,8 +124,9 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
             (insert "<h1>" title "</h1>\n")
             (insert "<p>Source modified: "(format-time-string "%FT%T%z" file-mtime) "</p>\n\n")
 
+            ;; I explicitly want this scan to start after the text I just added
+            ;; because I don't want to add a <br> to the first <h1>
             (when (string= "md" (file-name-extension file))
-              (goto-char (point-min))
               (while (re-search-forward "\\(<h[1-9]\\)" nil t)
                 ;; replace with <br>group1
                 (replace-match "<br>\\1")))
@@ -173,7 +174,8 @@ If ABS-IMG-PATHS-OR-BASE64 is non-nil, export with absolute paths to local image
                                      "end tell\n"
                                      "end tell\n"))))
 
-                    (message "applescript return: %s" as-output)
+                    ;; uncommend for debugging
+                    ;;(message "applescript return: %s" as-output)
                     '(oran-html-fn as-output)))
 
               '(oran-html-fn, nil))))))))
